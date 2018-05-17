@@ -7,9 +7,9 @@ https://github.com/Linaro/ansible-role-mr-provisioner/tree/master/library
 
 Those scripts were modified in the following way:
 * Fully moved from Python 2/3 (with future) to exclusive Python3
-** There isn't a single Linux distro that doesn't have Python3 available
+  * There isn't a single Linux distro that doesn't have Python3 available
 * Removed any reference to Ansible
-** This is independent and should not have to rely on it
+  * This is independent and should not have to rely on it
 * Added some TODO comments, moved to raise RuntimeError
 
 The scripts are not tested and not even guaranteed to execute (no syntax check either).
