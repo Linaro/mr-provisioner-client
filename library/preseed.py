@@ -3,82 +3,8 @@
 
 import json
 import requests
-from urlparse import urljoin
-
-ANSIBLE_METADATA = {
-    'metadata_version': '1.1',
-    'status': ['preview'],
-    'supported_by': 'community'
-}
-
-DOCUMENTATION = '''
----
-module: mr-provisioner-preseed
-short_description: Manage preseed files in Mr. Provisioner
-description:
-    Implemented:
-        - Upload new preseed
-        - Discover existing preseeds by a given name.
-    Not implemented:
-        - modifying existing preseed
-        - deleting existing preseed
-options:
-    name:
-        description:
-            - Name of the preseed
-        required: true
-    description:
-        description:
-            - Description of the preseed
-        required: false
-    path:
-        description: Local file path to preseed file.
-        required: true
-    url:
-        description: url to provisioner instance in the form of http://192.168.0.3:5000/
-        required: true
-    token:
-        description: Mr. Provisioner auth token
-        required: true
-    known_good:
-        description: Mark known good. Default false.
-        required: false
-    public:
-        description: Mark public. Default false.
-        required: false
-author:
-    - Jorge Niedbalski <jorge.niedbalski@linaro.org>
-    - Baptiste Gerondeau <baptiste.gerondeau@linaro.org>
-'''
-
-EXAMPLES = '''
-# Upload a preseed file to a MrProvisioner install.
-- name: moonshot-generic-preseed
-  path: ./preseeds/moonshot-generic.preseed.txt
-  url: http://192.168.0.3:5000/
-  token: "{{ provisioner_auth_token }}"
-
-# Uses existing file from MrProvisioner
-- name: test_preseed
-  path: ''
-  url: http://192.168.0.3:5000
-  token: "{{ fancy_token }}"
-'''
-
-RETURN = '''
-  id: auto-assigned preseed id
-  description: preseed description
-  name: preseed name
-  type: user defined type (default: preseed)
-  user: User that owns the preseed
-  known_good: true/false
-  public: true/false
-'''
-
-# TODO: This needs to be common to all modules
-class ProvisionerError(Exception):
-    def __init__(self, message):
-        super(ProvisionerError, self).__init__(message)
+from urllib.parse import urljoin
+from common import ProvisionerError
 
 class PreseedUploader(object):
     """ This class handles the job of uploading a preseed file to MrP.
