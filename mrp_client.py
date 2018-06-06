@@ -2,6 +2,8 @@
 
 from library.get_ip import IPGetter
 import argparse
+import ipaddress
+
 
 class Client(object):
     def __init__(self, mrp_token, mrp_url):
@@ -19,6 +21,7 @@ class Client(object):
     def getnetmask(self, machine_name, interface_name='eth1'):
         ipgetter = IPGetter(self.url, self.token, machine_name, interface_name)
         return ipgetter.get_netmask()
+
 
 if __name__ == '__main__':
     """This is the point of entry of our application, not much logic here"""
@@ -42,5 +45,10 @@ if __name__ == '__main__':
         print(client.getmac(args.machine_name))
     elif args.action == 'getnetmask':
         print(client.getnetmask(args.machine_name))
+    elif args.action == 'getall':
+        print("IP: " + client.getip(args.machine_name))
+        print("MAC: " + client.getmac(args.machine_name))
+        print("Network: " + str(ipaddress.ip_network(client.getip(args.machine_name) + '/' +
+                             client.getnetmask(args.machine_name), False)))
     else:
         parser.print_help()
