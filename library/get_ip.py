@@ -17,50 +17,49 @@ class IPGetter(object):
         self.machine_id = get_machine_by_name(
             self.mrp_token, self.mrp_url, machine_name)['id']
         self.machine_ip = ''
+        self.headers = {'Authorization': self.mrp_token}
 
-    def get_interfaces(self):
-        headers = {'Authorization': self.mrp_token}
+    def get_interface(self):
         url = urljoin(self.mrp_url,
                       "/api/v1/machine/{}/interface".format(self.machine_id))
-        r = requests.get(url, headers=headers)
+        r = requests.get(url, headers=self.headers)
         if r.status_code != 200:
-            raise ProvisionerError('Error fetching {} {}, HTTP {} {}'.format(url, self.interface, r.status_code,
-                                                                             r.reason))
+            raise ProvisionerError('Error fetching {} {}, HTTP {} {}'.format(
+                url, self.interface, r.status_code, r.reason))
+
         if len(r.json()) == 0:
             raise ProvisionerError(
                 'Error no machine with id "{}"'.format(self.machine_id))
 
-        return r.json()
+        interfaces = r.json()
+
+        for i in interfaces:
+            if str(i['identifier']) == self.interface:
+                return i
 
     def get_ip(self):
         try:
-            interfaces = self.get_interfaces()
+            interface = self.get_interface()
         except ProvisionerError as e:
             print('Could not fetch interface for machine : "{}"'.format(e))
             return 'FAILURE'
 
-        for i in interfaces:
-            if str(i['identifier']) == self.interface:
-                return i['lease_ipv4']
+        return interface['lease_ipv4']
 
     def get_mac(self):
         try:
-            interfaces = self.get_interfaces()
+            interface = self.get_interface()
         except ProvisionerError as e:
             print('Could not fetch interface for machine : "{}"'.format(e))
             return 'FAILURE'
 
-        for i in interfaces:
-            if str(i['identifier']) == self.interface:
-                return i['mac']
+        return interface['mac']
 
     def get_netmask(self):
         try:
-            interfaces = self.get_interfaces()
+            interface = self.get_interface()
         except ProvisionerError as e:
             print('Could not fetch interface for machine : "{}"'.format(e))
             return 'FAILURE'
 
-        for i in interfaces:
-            if str(i['identifier']) == self.interface:
-                return i['netmaskv4']
+        return interface['netmaskv4']

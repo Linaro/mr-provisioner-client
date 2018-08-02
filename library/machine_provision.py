@@ -4,83 +4,91 @@ import json
 import requests
 from urllib.parse import urljoin
 from urllib.parse import quote
-from common import ProvisionerError
-from common import get_machine_by_name
-
-def machine_provision(url, token, machine_id):
-    """ enables netboot on the machine and pxe boots it """
-    headers = {'Authorization': token}
-    url = urljoin(url, "/api/v1/machine/{}/state".format(machine_id))
-
-    data = json.dumps({'state': 'provision'})
-
-    r = requests.post(url, headers=headers, data=data)
-
-    if r.status_code not in [200, 202]:
-        raise ProvisionerError('Error PUTing {}, HTTP {} {}'.format(url,
-                         r.status_code, r.reason))
-    return r.json()
+from library.common import ProvisionerError
+from library.common import get_machine_by_name
+from library.image import ImageUploader
+from library.preseed import PreseedUploader
 
 
-def set_machine_parameters(url, token, machine_id, initrd_id=None,
-                           kernel_id=None, kernel_opts="", preseed_id=None, subarch=None):
-    """ Set parameters on machine specified by machine_id """
-    headers = {'Authorization': token}
-    url = urljoin(url, "/api/v1/machine/{}".format(machine_id))
+class MachineProvisioner(object):
+    def __init__(self, mrp_url, mrp_token, machine_name):
+        self.mrp_url = mrp_url
+        self.mrp_token = mrp_token
+        self.machine_name = machine_name
+        self.machine_id = None
+        self.headers = {'Authorization': self.mrp_token}
+        self.validate_name()
 
-    parameters = {}
-    if initrd_id:
-        parameters['initrd_id'] = initrd_id
-    if kernel_id:
-        parameters['kernel_id'] = kernel_id
-    if preseed_id:
-        parameters['preseed_id'] = preseed_id
-    if subarch:
-        parameters['subarch'] = subarch
-    if kernel_opts:
-        parameters['kernel_opts'] = kernel_opts
+    def validate_name(self):
+        try:
+            machine = get_machine_by_name(
+                self.mrp_token, self.mrp_url, self.machine_name)
+            self.machine_id = machine['id']
+        except ProvisionerError as e:
+            print(e)
 
-    parameters['netboot_enabled'] = True
+    def machine_provision(self):
+        """ enables netboot on the machine and pxe boots it """
+        url = urljoin(
+            self.mrp_url, "/api/v1/machine/{}/state".format(self.machine_id))
 
-    data = json.dumps(parameters)
+        data = json.dumps({'state': 'provision'})
 
-    r = requests.put(url, headers=headers, data=data)
+        r = requests.post(url, headers=self.headers, data=data)
 
-    if r.status_code != 200:
-        raise ProvisionerError('Error PUT {}, HTTP {} {}'.format(url,
-                         r.status_code, r.reason))
-    return r.json()
+        if r.status_code not in [200, 202]:
+            raise ProvisionerError('Error PUTing {}, HTTP {} {}'.format(url,
+                                                                        r.status_code, r.reason))
+        return r.json()
 
-def get_preseed_by_name(url, token, preseed_name):
-    """ Look up preseed by name """
-    headers = {'Authorization': token}
-    url = urljoin(url, "/api/v1/preseed?show_all=true")
-    r = requests.get(url, headers=headers)
-    if r.status_code != 200:
-        raise ProvisionerError('Error fetching {}, HTTP {} {}'.format(url,
-                         r.status_code, r.reason))
-    for preseed in r.json():
-        if preseed['name'] == preseed_name:
-            del preseed['content'] # we don't need it, and it's really big
-            return preseed
+    def set_machine_parameters(self, preseed_name, initrd_desc=None,
+                               kernel_desc=None, kernel_opts="",
+                               arch=None, subarch=None):
+        """ Set parameters on machine specified by machine_id """
+        url = urljoin(
+            self.mrp_url, "/api/v1/machine/{}".format(self.machine_id))
 
-    raise ProvisionerError('Error no preseed found with name "{}"'.
-            format(preseed_name))
+        image_controller = ImageUploader(self.mrp_url, self.mrp_token)
+        preseed_controller = PreseedUploader(self.mrp_url, self.mrp_token,
+                                             preseed_name)
 
-def get_image_by_description(url, token, image_type, description, arch):
-    """ Look up image by description """
-    headers = {'Authorization': token}
-    url = urljoin(url, "/api/v1/image?show_all=true")
-    r = requests.get(url, headers=headers)
-    if r.status_code != 200:
-        raise ProvisionerError('Error fetching {}, HTTP {} {}'.format(url,
-                         r.status_code, r.reason))
-    found_image = True
-    for image in r.json():
-        if (image['description'] == description and
-            image['type'] == image_type and
-            image['arch'] == arch):
-            return image
-    msg = "Error finding image of type '{}' and description '{}'".format(
-        image_type, description)
-    raise ProvisionerError(msg)
+        parameters = {}
+        if initrd_desc:
+            try:
+                initrd_id = image_controller.getImageID(
+                    initrd_desc, "Initrd", arch)
+                parameters['initrd_id'] = initrd_id
+            except ProvisionerError as e:
+                print(e)
+                raise
+
+        if kernel_desc:
+            try:
+                kernel_id = image_controller.getImageID(kernel_desc,
+                                                        "Kernel", arch)
+                parameters['kernel_id'] = kernel_id
+            except ProvisionerError as e:
+                print(e)
+                raise
+        if preseed_name:
+            try:
+                preseed_id = preseed_controller.getPreseedID()
+                parameters['preseed_id'] = preseed_id
+            except ProvisionerError as e:
+                print(e)
+                raise
+        if subarch:
+            parameters['subarch'] = subarch
+        if kernel_opts:
+            parameters['kernel_opts'] = kernel_opts
+
+        parameters['netboot_enabled'] = True
+
+        data = json.dumps(parameters)
+
+        r = requests.put(url, headers=self.headers, data=data)
+
+        if r.status_code != 200:
+            raise ProvisionerError('Error PUT {}, HTTP {} {}'.format(url,
+                                                                     r.status_code, r.reason))
+        return r.json()

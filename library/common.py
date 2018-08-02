@@ -9,8 +9,6 @@ class ProvisionerError(Exception):
     def __init__(self, message):
         super(ProvisionerError, self).__init__(message)
 
-# TODO: This needs a more standard name (static method)
-# Or we need to make sure the IPGetter object is easy to use
 def get_machine_by_name(mrp_token, mrp_url, machine_name):
     """ Look up machine by name """
     headers = {'Authorization': mrp_token}
