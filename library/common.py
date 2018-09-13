@@ -17,24 +17,22 @@ class ClientError(Exception):
 class RequesterError(Exception):
     def __init__(self, message, method, url):
         super(RequesterError, self).__init__(message)
-        self.method=method
-        self.url=url
+        self.method = method
+        self.url = url
 
 class RequesterHTTPError(RequesterError):
-    def __init__(self,  method, url, status_code, response):
+    def __init__(self, method, url, status_code, response):
         super(RequesterHTTPError, self).__init__("HTTP ERROR %s on %s request at %s" %
-                                                    (str(status_code),
-                                                     str(method), str(url)),
+                                                 (str(status_code), str(method), str(url)),
                                                  method, url)
-        self.status_code=status_code
-        self.response=response
+        self.status_code = status_code
+        self.response = response
 
 class RequesterJSONError(RequesterError):
     def __init__(self, method, url, response):
         super(RequesterJSONError, self).__init__("JSON ERROR on %s request at %s" %
-                                                    (str(method), str(url)),
-                                                 method, url)
-        self.response=response
+                                                 (str(method), str(url)), method, url)
+        self.response = response
 
 
 class Requester(object):
@@ -112,4 +110,3 @@ class Requester(object):
             raise RequesterJSONError("DELETE", url, req.text) from jsonerr
 
         return data
-

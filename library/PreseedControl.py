@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-import logging
+
 from library.common import *
 
 
@@ -13,7 +13,6 @@ class PreseedControl(object):
 
     def __init__(self, requester, preseed_name):
         self.requester = requester
-        self.log = logging.getLogger(__name__)
         self.name = preseed_name
 
     def _get_preseed_from_file(self, preseed_file, preseed_desc, preseed_type, public=False,
@@ -43,8 +42,7 @@ class PreseedControl(object):
         try:
             preseeds = self.requester.get(url)
         except Exception as err:
-            self.log.fatal(err, exc_info=True)
-            exit(1)
+            raise err
 
         for preseed in preseeds:
             if preseed['name'] == self.name:
@@ -56,8 +54,7 @@ class PreseedControl(object):
         try:
             preseed = self.check_for_existence()
         except Exception as err:
-            self.log.fatal(err, exc_info=True)
-            exit(1)
+            raise err
 
         if preseed != False:
             return preseed['id']
@@ -74,33 +71,27 @@ class PreseedControl(object):
         preseed_id = None
         preseed_id = self.get_preseed_id()
 
-        self.log.debug("Preseed ID: %s" % preseed_id)
-        self.log.debug("Preseed_file: %s" % preseed_file)
-
         if preseed_id is None and preseed_file == '':
             raise ProvisionerError('Preseed does not exist and file not given')
 
         if preseed_id is not None and preseed_file != '':  # Exists and file given
             try:
-                res = self._modify_preseed(preseed_id, 'PUT', preseed_file,
+                return self._modify_preseed(preseed_id, 'PUT', preseed_file,
                                            preseed_type, preseed_desc, public,
-                                          knowngood)
-            except ProvisionerError as e:
-                self.log.critical("Could not modify preseed")
-                raise
+                                           knowngood)
+            except ProvisionerError as err:
+                raise err
 
-        elif preseed_file != '':  # Doesn't exist and file given
+        elif preseed_id is None and preseed_file != '':  # Doesn't exist and file given
             try:
-                res = self._modify_preseed(preseed_id, 'POST', preseed_file,
+                return self._modify_preseed(preseed_id, 'POST', preseed_file,
                                            preseed_type, preseed_desc, public,
                                           knowngood)
-                return res
-            except ProvisionerError as e:
-                self.log.critical("Could not upload preseed")
-                raise
+            except ProvisionerError as err:
+                raise err
 
         else:  # Exists and file not given, is it useful fetching contents?
-            return res
+            return "Preseed exists"
 
     def _modify_preseed(self, preseed_id, method, preseed_file,
                         preseed_type, preseed_desc=None, public=False,
@@ -115,18 +106,12 @@ class PreseedControl(object):
             url = url + '/' + str(preseed_id)
 
             try:
-                response = self.requester.put(url, data=json.dumps(preseed))
+                return self.requester.put(url, data=json.dumps(preseed))
             except Exception as err:
-                self.log.fatal(err, exc_info=True)
-                exit(1)
+                raise err
 
         elif method == 'POST':
-            self.log.debug(json.dumps(preseed))
-
             try:
-                response = self.requester.post(url, data=json.dumps(preseed))
+                return self.requester.post(url, data=json.dumps(preseed))
             except Exception as err:
-                self.log.fatal(err, exc_info=True)
-                exit(1)
-
-        return response
+                raise err

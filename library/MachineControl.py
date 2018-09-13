@@ -1,27 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import logging
-
-from urllib.parse import urljoin
 from urllib.parse import quote
 
 from library.common import *
-from library.network import NetworkControl
-from library.state import StateControl
+from library.NetworkControl import NetworkControl
+from library.StateControl import StateControl
 
 class MachineControl(object):
     def __init__(self, requester, machine_name):
         self.requester = requester
-        self.log = logging.getLogger(__name__)
 
         try:
             self.machine_id = self._get_id(machine_name)
+            self.networkcontrol = NetworkControl(self.requester, self.machine_id)
         except Exception as err:
-            self.log.fatal(err, exc_info=True)
-            exit(1)
+            raise err
 
-        self.networkcontrol = NetworkControl(self.requester, self.machine_id)
         self.statecontrol = StateControl(self.requester, self.machine_id)
 
     def _get_id(self, machine_name):
@@ -31,28 +26,34 @@ class MachineControl(object):
         try:
             data = self.requester.get(url)
         except Exception as err:
-            self.log.fatal(err, exc_info=True)
-            exit(1)
+            raise err
 
-        self.log.debug('Machine ID: %s' % data[0]['id'])
         return data[0]['id']
 
     def get_network_info(self, command, interface_name):
-        if command == 'ip':
+        if command == 'getip':
             return self.networkcontrol.get_ip()
-        elif command == 'mac':
+        elif command == 'getmac':
             return self.networkcontrol.get_mac()
-        elif command == 'netmask':
+        elif command == 'getnetmask':
             return self.networkcontrol.get_netmask()
+        elif command == 'getnetwork':
+            return self.networkcontrol.get_network()
+        elif command == 'getall':
+            return self.networkcontrol.get_all()
         else:
-            self.log.fatal('UNKNOWN COMMAND for get_network_info : %s' %
-                           command)
-            exit(2)
+            raise LookupError("Unknown Command : %s" % command)
 
     def set_machine_provisioning(self, preseed_name, initrd_desc, kernel_desc,
                                  kernel_opts, arch, subarch):
-        self.statecontrol.set_machine_parameters(preseed_name, initrd_desc, kernel_desc,
-                                 kernel_opts, arch, subarch)
+        try:
+            return self.statecontrol.set_machine_parameters(preseed_name, initrd_desc, kernel_desc,
+                                                            kernel_opts, arch, subarch)
+        except Exception as err:
+            raise err
 
     def provision_machine(self):
-        self.statecontrol.machine_provision()
+        try:
+            return self.statecontrol.machine_provision()
+        except Exception as err:
+            raise err

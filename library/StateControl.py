@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import logging
 import json
-from urllib.parse import quote
-from library.common import *
-from library.image import ImageControl
-from library.preseed import PreseedControl
 
+from library.common import *
+from library.ImageControl import ImageControl
+from library.PreseedControl import PreseedControl
 
 class StateControl(object):
     def __init__(self, requester, machine_id):
-        self.log = logging.getLogger(__name__)
         self.requester = requester
         self.machine_id = machine_id
 
@@ -22,14 +19,11 @@ class StateControl(object):
         data = json.dumps({'state': 'provision'})
 
         try:
-            response = self.requester.post(url, data)
+            return self.requester.post(url, data)
         except Exception as err:
-            self.log.fatal(err, exc_info=True)
-            exit(1)
+            raise err
 
-        self.log.debug(response)
-
-    def set_machine_parameters(self, preseed_name, initrd_desc=None,
+    def set_machine_parameters(self, preseed_name=None, initrd_desc=None,
                                kernel_desc=None, kernel_opts="",
                                arch=None, subarch=None):
         """ Set parameters on machine specified by machine_id """
@@ -45,8 +39,7 @@ class StateControl(object):
                     initrd_desc, "Initrd", arch)
                 parameters['initrd_id'] = initrd_id
             except Exception as err:
-                self.log.fatal(err, exc_info=True)
-                exit(1)
+               raise err
 
         if kernel_desc:
             try:
@@ -54,16 +47,14 @@ class StateControl(object):
                                                         "Kernel", arch)
                 parameters['kernel_id'] = kernel_id
             except Exception as err:
-                self.log.fatal(err, exc_info=True)
-                exit(1)
+               raise err
 
         if preseed_name:
             try:
                 preseed_id = preseed_controller.get_preseed_id()
                 parameters['preseed_id'] = preseed_id
             except Exception as err:
-                self.log.fatal(err, exc_info=True)
-                exit(1)
+               raise err
 
         if subarch:
             parameters['subarch'] = subarch
@@ -76,9 +67,6 @@ class StateControl(object):
         data = json.dumps(parameters)
 
         try:
-            response = self.requester.put(url, data)
+            return self.requester.put(url, data)
         except Exception as err:
-            self.log.fatal(err, exc_info=True)
-            exit(1)
-
-        self.log.debug(response)
+            raise err
