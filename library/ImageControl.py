@@ -17,10 +17,7 @@ class ImageControl(object):
         # Determine if image is already uploaded
         url = "/api/v1/image?show_all=true"
 
-        try:
-            images = self.requester.get(url)
-        except Exception as err:
-            raise err
+        images = self.requester.get(url)
 
         for image in images:
             if (image['description'] == desc and
@@ -54,7 +51,4 @@ class ImageControl(object):
                      })
                    }
 
-            try:
-                return self.requester.post(url, files=files, data=data)
-            except Exception as err:
-                raise err
+            return self.requester.post(url, files=files, data=data)

@@ -18,10 +18,7 @@ class StateControl(object):
 
         data = json.dumps({'state': 'provision'})
 
-        try:
-            return self.requester.post(url, data)
-        except Exception as err:
-            raise err
+        return self.requester.post(url, data)
 
     def set_machine_parameters(self, preseed_name=None, initrd_desc=None,
                                kernel_desc=None, kernel_opts="",
@@ -34,27 +31,18 @@ class StateControl(object):
 
         parameters = {}
         if initrd_desc:
-            try:
-                initrd_id = image_controller.get_image_id(
+            initrd_id = image_controller.get_image_id(
                     initrd_desc, "Initrd", arch)
-                parameters['initrd_id'] = initrd_id
-            except Exception as err:
-               raise err
+            parameters['initrd_id'] = initrd_id
 
         if kernel_desc:
-            try:
-                kernel_id = image_controller.get_image_id(kernel_desc,
-                                                        "Kernel", arch)
-                parameters['kernel_id'] = kernel_id
-            except Exception as err:
-               raise err
+            kernel_id = image_controller.get_image_id(kernel_desc,
+                                                    "Kernel", arch)
+            parameters['kernel_id'] = kernel_id
 
         if preseed_name:
-            try:
-                preseed_id = preseed_controller.get_preseed_id()
-                parameters['preseed_id'] = preseed_id
-            except Exception as err:
-               raise err
+            preseed_id = preseed_controller.get_preseed_id()
+            parameters['preseed_id'] = preseed_id
 
         if subarch:
             parameters['subarch'] = subarch
@@ -66,7 +54,4 @@ class StateControl(object):
 
         data = json.dumps(parameters)
 
-        try:
-            return self.requester.put(url, data)
-        except Exception as err:
-            raise err
+        return self.requester.put(url, data)

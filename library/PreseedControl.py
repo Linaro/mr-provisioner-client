@@ -39,10 +39,7 @@ class PreseedControl(object):
     def check_for_existence(self):
         url = '/api/v1/preseed?show_all=true'
 
-        try:
-            preseeds = self.requester.get(url)
-        except Exception as err:
-            raise err
+        preseeds = self.requester.get(url)
 
         for preseed in preseeds:
             if preseed['name'] == self.name:
@@ -51,10 +48,7 @@ class PreseedControl(object):
         return False
 
     def get_preseed_id(self):
-        try:
-            preseed = self.check_for_existence()
-        except Exception as err:
-            raise err
+        preseed = self.check_for_existence()
 
         if preseed != False:
             return preseed['id']
@@ -75,20 +69,14 @@ class PreseedControl(object):
             raise ProvisionerError('Preseed does not exist and file not given')
 
         if preseed_id is not None and preseed_file != '':  # Exists and file given
-            try:
-                return self._modify_preseed(preseed_id, 'PUT', preseed_file,
+            return self._modify_preseed(preseed_id, 'PUT', preseed_file,
                                            preseed_type, preseed_desc, public,
                                            knowngood)
-            except ProvisionerError as err:
-                raise err
 
         elif preseed_id is None and preseed_file != '':  # Doesn't exist and file given
-            try:
-                return self._modify_preseed(preseed_id, 'POST', preseed_file,
+            return self._modify_preseed(preseed_id, 'POST', preseed_file,
                                            preseed_type, preseed_desc, public,
                                           knowngood)
-            except ProvisionerError as err:
-                raise err
 
         else:  # Exists and file not given, is it useful fetching contents?
             return "Preseed exists"
@@ -105,13 +93,7 @@ class PreseedControl(object):
                     'preseed ID is undefined, please use upload_preseed')
             url = url + '/' + str(preseed_id)
 
-            try:
-                return self.requester.put(url, data=json.dumps(preseed))
-            except Exception as err:
-                raise err
+            return self.requester.put(url, data=json.dumps(preseed))
 
         elif method == 'POST':
-            try:
-                return self.requester.post(url, data=json.dumps(preseed))
-            except Exception as err:
-                raise err
+            return self.requester.post(url, data=json.dumps(preseed))

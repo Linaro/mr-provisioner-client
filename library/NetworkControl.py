@@ -15,17 +15,11 @@ class NetworkControl(object):
         self.machine_id = machine_id
         self.interface_name = interface_name
         self.machine_ip = ''
-        try:
-            self.interface = self.get_interface()
-        except Exception as err:
-            raise err
+        self.interface = self.get_interface()
 
     def get_interface(self):
         url = "/api/v1/machine/{}/interface".format(self.machine_id)
-        try:
-            interfaces = self.requester.get(url)
-        except Exception as err:
-            raise err
+        interfaces = self.requester.get(url)
 
         for i in interfaces:
             if str(i['identifier']) == self.interface_name:
