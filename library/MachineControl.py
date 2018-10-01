@@ -31,8 +31,8 @@ class MachineControl(object):
 
         return data
 
-    def get_network_info(self, command, interface_name):
-        return self.networkcontrol.get(command)
+    def get_network_info(self):
+        return self.networkcontrol.get_all()
 
     def set_machine_provisioning(self, preseed_name, initrd_desc, kernel_desc,
                                  kernel_opts, arch, subarch):

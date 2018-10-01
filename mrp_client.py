@@ -17,10 +17,25 @@ class Client(object):
         self.log = ClientLogger(__name__, self.parser, self.args.verbose)
         self.log.debug(self.args)
 
+    def interpret_ip_command(self, command, interface):
+        if command == 'getip':
+            return repr(interface['lease_ipv4'])
+        elif command == 'getmac':
+            return repr(interface['mac'])
+        elif command == 'getnetmask':
+            return repr(interface['netmaskv4'])
+        elif command == 'getnetwork':
+            return repr(interface['network'])
+        elif command == 'getall':
+            return repr(interface)
+        else:
+            raise ProvisionerError("Unknown Command : %s" % command)
+
     def parse(self):
         if self.args.subcommand == 'ip':
-            print(self.getNetworkInfo(self.args.action, self.args.machine,
-                                      self.args.interface))
+            interface = self.getNetworkInfo(self.args.action, self.args.machine,
+                                            self.args.interface)
+            print(self.interpret_ip_command(self.args.action, interface))
         elif self.args.subcommand == 'machine':
             self.provision(self.args.machine, self.args.action, self.args.preseed_name,
                            self.args.initrd_desc, self.args.kernel_desc, self.args.kernel_opts,
@@ -40,7 +55,7 @@ class Client(object):
         try:
             machine = MachineControl(self.requester, machine_name,
                                      interface_name)
-            return machine.get_network_info(request, interface_name)
+            return machine.get_network_info()
 
         except Exception as err:
             self.log.fatal(err)
