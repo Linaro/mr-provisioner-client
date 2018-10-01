@@ -9,6 +9,8 @@ from library.PreseedControl import PreseedControl
 
 class StateControl(object):
     def __init__(self, requester, machine_id):
+        if requester is None:
+            raise ProvisionerError("Need an initialized Requester instance")
         self.requester = requester
         self.machine_id = machine_id
 
@@ -29,19 +31,23 @@ class StateControl(object):
         image_controller = ImageControl(self.requester)
         preseed_controller = PreseedControl(self.requester,preseed_name)
 
+        if kernel_desc is None or subarch is None:
+            raise ProvisionerError("Need at least kernel_desc and subarch with \
+                                   an associated bootloader to provision")
+
         parameters = {}
         if initrd_desc:
-            initrd_id = image_controller.get_image_id(
-                    initrd_desc, "Initrd", arch)
+            initrd_id = image_controller.get_image(
+                    initrd_desc, "Initrd", arch)['id']
             parameters['initrd_id'] = initrd_id
 
         if kernel_desc:
-            kernel_id = image_controller.get_image_id(kernel_desc,
-                                                    "Kernel", arch)
+            kernel_id = image_controller.get_image(kernel_desc,
+                                                   "Kernel", arch)['id']
             parameters['kernel_id'] = kernel_id
 
         if preseed_name:
-            preseed_id = preseed_controller.get_preseed_id()
+            preseed_id = preseed_controller.get_preseed()['id']
             parameters['preseed_id'] = preseed_id
 
         if subarch:

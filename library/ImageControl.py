@@ -6,9 +6,11 @@ from library.common import *
 
 class ImageControl(object):
     def __init__(self, requester):
+        if requester is None:
+            raise ProvisionerError("Need an initialized instance of Requester")
         self.requester = requester
 
-    def check_for_existence(self, img_type, desc, arch):
+    def get_image(self, desc, img_type, arch):
         allowed_types = ["Kernel", "Initrd"]
         if img_type not in allowed_types:
             raise ProvisionerError("error: type is '{}'; must be one of {}".format(
@@ -25,18 +27,11 @@ class ImageControl(object):
                 image['arch'] == arch):
                 return image
 
-        return False
-
-    def get_image_id(self, desc, image_type, arch):
-        image = self.check_for_existence(image_type, desc, arch)
-        if image:
-            return image['id']
-        else:
-            raise ProvisionerError('No image of description {} for architecture {}'
+        raise ProvisionerError('No image of description {} for architecture {}'
                                    .format(desc, arch))
 
     def upload_image(self, img_type, desc, arch, path, public, good):
-        image = self.check_for_existence(img_type, desc, arch)
+        image = self.get_image(desc, img_type, arch)
         if image:
             return image
         else:
@@ -46,8 +41,8 @@ class ImageControl(object):
                          'description': desc,
                          'type': img_type,
                          'arch': arch,
-                         'known_good': good.lower() == 'true',
-                         'public': public.lower() == 'true',
+                         'known_good': good,
+                         'public': public,
                      })
                    }
 

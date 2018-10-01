@@ -38,7 +38,8 @@ class Client(object):
 
     def getNetworkInfo(self, request, machine_name, interface_name='eth1'):
         try:
-            machine = MachineControl(self.requester, machine_name)
+            machine = MachineControl(self.requester, machine_name,
+                                     interface_name)
             return machine.get_network_info(request, interface_name)
 
         except Exception as err:
@@ -66,14 +67,16 @@ class Client(object):
                 exit(1)
 
     def image_upload(self, command, image_type, desc, arch, path, public, knowngood):
-        image_uploader = ImageControl(self.requester)
         try:
+            image_uploader = ImageControl(self.requester)
             if command == 'upload':
                 rc = image_uploader.upload_image(image_type, desc, arch, path, public,
                                                  knowngood)
                 self.log.debug(rc)
             elif command == 'check':
-                if image_uploader.check_for_existence(image_type, desc, arch):
+                image = image_uploader.get_image(desc, image_type, arch)
+                if image is not None:
+                    self.log.debug(repr(image))
                     print('True')
                 else:
                     print('False')
@@ -85,14 +88,18 @@ class Client(object):
 
     def preseed_upload(self, command, preseed_name, preseed_file, preseed_desc,
                        preseed_type, public, knowngood):
-        pres_uploader = PreseedControl(self.requester, preseed_name)
         try:
+            pres_uploader = PreseedControl(self.requester, preseed_name)
             if command == 'upload':
+                bpublic = public.lower() == 'true'
+                bknowngood = knowngood.lower() == 'true'
                 rc = pres_uploader.upload_preseed(preseed_file, preseed_desc,
-                                                  preseed_type, public, knowngood)
+                                                  preseed_type, bpublic, bknowngood)
                 self.log.debug(rc)
             elif command == 'check':
-                if pres_uploader.check_for_existence():
+                preseed = pres_uploader.get_preseed()
+                if preseed is not None:
+                    self.log.debug(repr(preseed))
                     print("True")
                 else:
                     print("False")

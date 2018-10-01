@@ -12,6 +12,8 @@ class PreseedControl(object):
         fetch the thing via the regular call in the Ansible role"""
 
     def __init__(self, requester, preseed_name):
+        if requester is None:
+            raise ProvisionerError("Need an initialized Requester instance")
         self.requester = requester
         self.name = preseed_name
 
@@ -22,6 +24,9 @@ class PreseedControl(object):
 
         with open(preseed_file, 'r') as fd:
             lines = fd.readlines()
+
+        if len(lines) == 0:
+            raise ProvisionerError("Empty Preseed File supplied")
 
         for line in lines:
             contents += line
@@ -36,7 +41,7 @@ class PreseedControl(object):
 
         return json_preseed
 
-    def check_for_existence(self):
+    def get_preseed(self):
         url = '/api/v1/preseed?show_all=true'
 
         preseeds = self.requester.get(url)
@@ -45,15 +50,7 @@ class PreseedControl(object):
             if preseed['name'] == self.name:
                 return preseed
 
-        return False
-
-    def get_preseed_id(self):
-        preseed = self.check_for_existence()
-
-        if preseed != False:
-            return preseed['id']
-        else:
-            return None
+        return None
 
     def upload_preseed(self, preseed_file, preseed_type, preseed_desc=None,
                        public=False, knowngood=False):
@@ -63,23 +60,20 @@ class PreseedControl(object):
         be done on mrp's side"""
 
         preseed_id = None
-        preseed_id = self.get_preseed_id()
+        preseed_id = self.get_preseed()['id']
 
-        if preseed_id is None and preseed_file == '':
-            raise ProvisionerError('Preseed does not exist and file not given')
+        if preseed_file == '':
+            raise ProvisionerError('File not given')
 
-        if preseed_id is not None and preseed_file != '':  # Exists and file given
+        if preseed_id is not None:
             return self._modify_preseed(preseed_id, 'PUT', preseed_file,
-                                           preseed_type, preseed_desc, public,
-                                           knowngood)
+                                        preseed_type, preseed_desc, public,
+                                        knowngood)
 
-        elif preseed_id is None and preseed_file != '':  # Doesn't exist and file given
+        else:
             return self._modify_preseed(preseed_id, 'POST', preseed_file,
-                                           preseed_type, preseed_desc, public,
-                                          knowngood)
-
-        else:  # Exists and file not given, is it useful fetching contents?
-            return "Preseed exists"
+                                        preseed_type, preseed_desc, public,
+                                        knowngood)
 
     def _modify_preseed(self, preseed_id, method, preseed_file,
                         preseed_type, preseed_desc=None, public=False,
@@ -91,8 +85,8 @@ class PreseedControl(object):
             if preseed_id is None:
                 raise ProvisionerError(
                     'preseed ID is undefined, please use upload_preseed')
-            url = url + '/' + str(preseed_id)
 
+            url = url + '/' + str(preseed_id)
             return self.requester.put(url, data=json.dumps(preseed))
 
         elif method == 'POST':

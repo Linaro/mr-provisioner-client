@@ -10,20 +10,36 @@ from urllib.parse import quote
 
 class NetworkControl(object):
     def __init__(self, requester, machine_id, interface_name='eth1'):
-        self.log = logging.getLogger(__name__)
+        if requester is None:
+            raise ProvisionerError("Need an initialized Requester instance")
         self.requester = requester
         self.machine_id = machine_id
-        self.interface_name = interface_name
         self.machine_ip = ''
-        self.interface = self.get_interface()
+        self.interface = self.get_interface(interface_name)
 
-    def get_interface(self):
+    def get(self, command):
+        if command == 'getip':
+            return self.get_ip()
+        elif command == 'getmac':
+            return self.get_mac()
+        elif command == 'getnetmask':
+            return self.get_netmask()
+        elif command == 'getnetwork':
+            return self.get_network()
+        elif command == 'getall':
+            return self.get_all()
+        else:
+            raise ProvisionerError("Unknown Command : %s" % command)
+
+    def get_interface(self, interface_name):
         url = "/api/v1/machine/{}/interface".format(self.machine_id)
         interfaces = self.requester.get(url)
 
-        for i in interfaces:
-            if str(i['identifier']) == self.interface_name:
-                return i
+        # interfaces contains a dictionary per machine interface registered in
+        # MrP, with its 'identifier' being its 'name'.
+        for interface in interfaces:
+            if str(interface['identifier']) == interface_name:
+                return interface
 
     def get_ip(self):
         return self.interface['lease_ipv4']

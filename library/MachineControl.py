@@ -8,34 +8,31 @@ from library.NetworkControl import NetworkControl
 from library.StateControl import StateControl
 
 class MachineControl(object):
-    def __init__(self, requester, machine_name):
+    def __init__(self, requester, machine_name, interface_name='eth1'):
+        if requester is None:
+            raise ProvisionerError("Need an initialized instance of Requester")
         self.requester = requester
-        self.machine_id = self._get_id(machine_name)
-        self.networkcontrol = NetworkControl(self.requester, self.machine_id)
+        self.config = self._get_machine(machine_name)
+        self.machine_id = self.config[0]['id']
+        self.networkcontrol = NetworkControl(self.requester, self.machine_id,
+                                             interface_name)
         self.statecontrol = StateControl(self.requester, self.machine_id)
 
-    def _get_id(self, machine_name):
+    def _get_machine(self, machine_name):
         """ Look up machine by name """
         q = '(= name "{}")'.format(quote(machine_name))
         url = "/api/v1/machine?q={}&show_all=false".format(q)
 
         data = self.requester.get(url)
 
-        return data[0]['id']
+        if len(data) <= 0 or type(data[0]) is not dict or type(data[0]['id']) is not int:
+            raise TypeError("Failed to fetch ID for %s, data corrupted : '%s'" %
+                            (machine_name, data))
+
+        return data
 
     def get_network_info(self, command, interface_name):
-        if command == 'getip':
-            return self.networkcontrol.get_ip()
-        elif command == 'getmac':
-            return self.networkcontrol.get_mac()
-        elif command == 'getnetmask':
-            return self.networkcontrol.get_netmask()
-        elif command == 'getnetwork':
-            return self.networkcontrol.get_network()
-        elif command == 'getall':
-            return self.networkcontrol.get_all()
-        else:
-            raise LookupError("Unknown Command : %s" % command)
+        return self.networkcontrol.get(command)
 
     def set_machine_provisioning(self, preseed_name, initrd_desc, kernel_desc,
                                  kernel_opts, arch, subarch):
