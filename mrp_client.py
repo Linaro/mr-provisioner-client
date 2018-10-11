@@ -3,6 +3,7 @@
 from library.get_ip import IPGetter
 from helper.ClientLogger import ClientLogger
 
+from library.common import *
 import argparse
 import ipaddress
 
@@ -36,7 +37,6 @@ class Client(object):
         except Exception as err:
             self.log.fatal(err)
             exit(1)
-
 
 if __name__ == '__main__':
     """This is the point of entry of our application, not much logic here"""
