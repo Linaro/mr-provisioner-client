@@ -13,10 +13,15 @@ class Client(object):
         self.parser = parser
         self.args = args
         self.log = ClientLogger(__name__, parser, args.verbose)
+        try:
+            self.urlhandler = URLhandler(self.args.mrp_url, self.args.mrp_token)
+        except Exception as err:
+            self.log.fatal(err)
+            exit(1)
 
     def getip(self, machine_name, interface_name='eth1'):
         try:
-            ipgetter = IPGetter(self.args.mrp_url, self.args.mrp_token, machine_name, interface_name)
+            ipgetter = IPGetter(self.urlhandler, machine_name, interface_name)
             return ipgetter.get_ip()
         except Exception as err:
             self.log.fatal(err)
@@ -24,7 +29,7 @@ class Client(object):
 
     def getmac(self, machine_name, interface_name='eth1'):
         try:
-            ipgetter = IPGetter(self.args.mrp_url, self.args.mrp_token, machine_name, interface_name)
+            ipgetter = IPGetter(self.urlhandler, machine_name, interface_name)
             return ipgetter.get_mac()
         except Exception as err:
             self.log.fatal(err)
@@ -32,7 +37,7 @@ class Client(object):
 
     def getnetmask(self, machine_name, interface_name='eth1'):
         try:
-            ipgetter = IPGetter(self.args.mrp_url, self.args.mrp_token, machine_name, interface_name)
+            ipgetter = IPGetter(self.urlhandler, machine_name, interface_name)
             return ipgetter.get_netmask()
         except Exception as err:
             self.log.fatal(err)
