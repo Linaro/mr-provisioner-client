@@ -15,7 +15,6 @@
 """
 
 import logging
-import coloredlogs
 
 class ClientLogger(object):
     def __init__(self, name, parser=None, verbosity=0):
@@ -24,7 +23,6 @@ class ClientLogger(object):
         # Default level is WARNING (no output other than warnings and errors)
         start = 30
         silent = min(verbosity*10, 20)
-        coloredlogs.install(level=start-silent, logger=self.logger)
         self.parser = parser
 
     def fatal(self, err):
