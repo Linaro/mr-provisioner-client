@@ -4,10 +4,13 @@ import argparse
 
 from library.PreseedControl import PreseedControl
 from library.StateControl import StateControl
+from library.NetworkControl import NetworkControl
 from library.ImageControl import ImageControl
 from helper.ClientLogger import ClientLogger
 
 from library.common import *
+
+import argparse
 
 class Client(object):
     def __init__(self, parser, args):
@@ -33,6 +36,9 @@ class Client(object):
             self.machine_control(self.args.machine, self.args.action, self.args.preseed_name,
                                  self.args.initrd_desc, self.args.kernel_desc, self.args.kernel_opts,
                                  self.args.arch, self.args.subarch, self.args.netboot)
+        elif self.args.subcommand == 'net':
+            self.get_network_info(self.args.action, self.args.machine,
+                                self.args.interface)
         else:
             self.parser.print_help()
 
@@ -94,6 +100,23 @@ class Client(object):
         except Exception as err:
             self.log.fatal(err)
             exit(1)
+
+    def get_network_info(self, command, machine_name, interface_name):
+        try:
+            machine_id = get_machine_id(self.urlhandler, machine_name)
+            network = NetworkControl(self.urlhandler, machine_id, interface_name)
+            if command == 'getip':
+                print(network.get_ip())
+            elif command == 'getmac':
+                print(network.get_mac())
+            elif command == 'getnetmask':
+                print(network.get_netmask())
+            else:
+                raise ClientError("Unknown Command : %s" % command)
+        except Exception as err:
+            self.log.fatal(err)
+            exit(1)
+
 
     def _print_machine_state(self, machine_state):
         for key in machine_state.keys():
@@ -174,5 +197,13 @@ if __name__ == '__main__':
                                 required=False, help='subarchitecture of the machine as in MrP')
     parser_machine.add_argument('--netboot', type=str2bool, nargs='?', default=None, const=True,
                                 required=False, help='Switches the netboot enabled flag on for setparams')
+
+    parser_net = subparsers.add_parser('net')
+    parser_net.add_argument('--action', type=str, choices=['getip', 'getmac', 'getnetmask'],
+                           default='', required=True, help='getip, getmac, getnetmask, getall')
+    parser_net.add_argument('--machine', type=str, default='',
+                           required=True, help='name of the machine')
+    parser_net.add_argument('--interface', type=str, default='eth1',
+                           help='name of the interface on the machine')
 
     Client(parser, parser.parse_args()).parse()
