@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 from library.get_ip import IPGetter
+from helper.ClientLogger import ClientLogger
+
 import argparse
 import ipaddress
 
@@ -9,18 +11,31 @@ class Client(object):
     def __init__(self, mrp_token, mrp_url):
         self.token = mrp_token
         self.url = mrp_url
+        self.log = ClientLogger(__name__)
 
     def getip(self, machine_name, interface_name='eth1'):
-        ipgetter = IPGetter(self.url, self.token, machine_name, interface_name)
-        return ipgetter.get_ip()
+        try:
+            ipgetter = IPGetter(self.url, self.token, machine_name, interface_name)
+            return ipgetter.get_ip()
+        except Exception as err:
+            self.log.fatal(err)
+            exit(1)
 
     def getmac(self, machine_name, interface_name='eth1'):
-        ipgetter = IPGetter(self.url, self.token, machine_name, interface_name)
-        return ipgetter.get_mac()
+        try:
+            ipgetter = IPGetter(self.url, self.token, machine_name, interface_name)
+            return ipgetter.get_mac()
+        except Exception as err:
+            self.log.fatal(err)
+            exit(1)
 
     def getnetmask(self, machine_name, interface_name='eth1'):
-        ipgetter = IPGetter(self.url, self.token, machine_name, interface_name)
-        return ipgetter.get_netmask()
+        try:
+            ipgetter = IPGetter(self.url, self.token, machine_name, interface_name)
+            return ipgetter.get_netmask()
+        except Exception as err:
+            self.log.fatal(err)
+            exit(1)
 
 
 if __name__ == '__main__':
