@@ -1,26 +1,41 @@
 #!/usr/bin/env python3
 
 from library.get_ip import IPGetter
+from helper.ClientLogger import ClientLogger
+
 import argparse
 import ipaddress
 
 
 class Client(object):
-    def __init__(self, mrp_token, mrp_url):
-        self.token = mrp_token
-        self.url = mrp_url
+    def __init__(self, parser, args):
+        self.parser = parser
+        self.args = args
+        self.log = ClientLogger(__name__, parser, args.verbose)
 
     def getip(self, machine_name, interface_name='eth1'):
-        ipgetter = IPGetter(self.url, self.token, machine_name, interface_name)
-        return ipgetter.get_ip()
+        try:
+            ipgetter = IPGetter(self.args.mrp_url, self.args.mrp_token, machine_name, interface_name)
+            return ipgetter.get_ip()
+        except Exception as err:
+            self.log.fatal(err)
+            exit(1)
 
     def getmac(self, machine_name, interface_name='eth1'):
-        ipgetter = IPGetter(self.url, self.token, machine_name, interface_name)
-        return ipgetter.get_mac()
+        try:
+            ipgetter = IPGetter(self.args.mrp_url, self.args.mrp_token, machine_name, interface_name)
+            return ipgetter.get_mac()
+        except Exception as err:
+            self.log.fatal(err)
+            exit(1)
 
     def getnetmask(self, machine_name, interface_name='eth1'):
-        ipgetter = IPGetter(self.url, self.token, machine_name, interface_name)
-        return ipgetter.get_netmask()
+        try:
+            ipgetter = IPGetter(self.args.mrp_url, self.args.mrp_token, machine_name, interface_name)
+            return ipgetter.get_netmask()
+        except Exception as err:
+            self.log.fatal(err)
+            exit(1)
 
 
 if __name__ == '__main__':
@@ -38,7 +53,7 @@ if __name__ == '__main__':
                         help='The verbosity of logging output')
     args = parser.parse_args()
 
-    client = Client(args.mrp_token, args.mrp_url)
+    client = Client(parser, args)
     if args.action == 'getip':
         print(client.getip(args.machine_name))
     elif args.action == 'getmac':
