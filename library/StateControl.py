@@ -51,7 +51,7 @@ class StateControl(object):
         if preseed_name is not None:
             preseed_controller = PreseedControl(self.urlhandler)
             preseed_id = preseed_controller.get_preseed_id(preseed_name)
-            if preseed_id is None:
+            if preseed_name and preseed_id is None:
                 raise ProvisionerError("Preseed '{0}' unknown".format(preseed_name))
             parameters['preseed_id'] = preseed_id
 
