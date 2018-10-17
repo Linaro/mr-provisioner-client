@@ -7,13 +7,12 @@ from urllib.parse import quote
 
 # TODO: This needs a more standard name (static method)
 # Or we need to make sure the IPGetter object is easy to use
-def get_machine_by_name(urlhandler, machine_name):
+def get_machine_id(urlhandler, machine_name):
     """ Look up machine by name """
     q = '(= name "{}")'.format(quote(machine_name))
     path = "/api/v1/machine?q={}&show_all=false".format(q)
     result = urlhandler.get(path)
-
-    return result[0]
+    return result[0]['id']
 
 class ProvisionerError(Exception):
     def __init__(self, message):
