@@ -99,6 +99,14 @@ class Client(object):
         for key in machine_state.keys():
             print("{0}: {1}".format(key, machine_state[key]))
 
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 if __name__ == '__main__':
     """This is the point of entry of our application, not much logic here"""
 
@@ -152,7 +160,7 @@ if __name__ == '__main__':
                                 help='provision, setparams, getparams')
     parser_machine.add_argument('--machine', type=str, default='',
                                 required=True, help='name of the machine')
-    parser_machine.add_argument('--preseed-name', type=str, default='',
+    parser_machine.add_argument('--preseed-name', type=str, default=None,
                                 required=False, help='name of the preseed to use')
     parser_machine.add_argument('--initrd-desc', type=str, default='',
                                 required=False, help='description of the initrd to use')
@@ -164,9 +172,7 @@ if __name__ == '__main__':
                                 help='architecture of the machine as in MrP')
     parser_machine.add_argument('--subarch', type=str, default='',
                                 required=False, help='subarchitecture of the machine as in MrP')
-    parser_machine.add_argument('--netboot', action='store_true', default=None, required=False,
-                                help='Switches the netboot enabled flag on for setparams')
-    parser_machine.add_argument('--netboot-disabled', action='store_false', default=None, required=False,
-                                help='Forces the netboot enabled flag off for setparams')
+    parser_machine.add_argument('--netboot', type=str2bool, nargs='?', default=None, const=True,
+                                required=False, help='Switches the netboot enabled flag on for setparams')
 
     Client(parser, parser.parse_args()).parse()
