@@ -12,7 +12,10 @@ def get_machine_id(urlhandler, machine_name):
     q = '(= name "{}")'.format(quote(machine_name))
     path = "/api/v1/machine?q={}&show_all=false".format(q)
     result = urlhandler.get(path)
-    return result[0]['id']
+    if len(result) == 1 and 'id' in result[0]:
+        return result[0]['id']
+    else:
+        raise ProvisionerError("Machine {0} unknown to MrP".format(machine_name))
 
 class ProvisionerError(Exception):
     def __init__(self, message):
