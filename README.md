@@ -18,6 +18,8 @@ The current supported features are:
 * `image`: Check images for existence, upload new ones.
 * `preseed`: Check preseeds for existence, upload new ones.
 
+Check the [documentation](https://github.com/Linaro/mr-provisioner-client/wiki) for more details.
+
 This does not yet make use of **all** functionality exposed by Mr-Provisioner's API, but it already allows you to upload the right images, set the right parameters in a machine and provision it using a preseed. It also allows you to query the IP settings of a machine by name, which is helpful for automation tasks.
 
 ## Future Tasks
