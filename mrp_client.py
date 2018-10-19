@@ -203,7 +203,7 @@ if __name__ == '__main__':
                            default='', required=True, help='getip, getmac, getnetmask, getall')
     parser_net.add_argument('--machine', type=str, default='',
                            required=True, help='name of the machine')
-    parser_net.add_argument('--interface', type=str, default='eth1',
+    parser_net.add_argument('--interface', type=str, default='',
                            help='name of the interface on the machine')
 
     Client(parser, parser.parse_args()).parse()
