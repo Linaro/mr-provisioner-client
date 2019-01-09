@@ -66,7 +66,7 @@ class Client(object):
         preseed_controller = PreseedControl(self.urlhandler)
         try:
             if command == 'upload':
-                rc = preseed_controller.upload_preseed(preseed_name, preseed_file,preseed_type,
+                rc = preseed_controller.upload_preseed(preseed_name, preseed_file, preseed_type,
                                                        preseed_desc, public, knowngood)
                 self.log.debug(rc)
             elif command == 'check':
@@ -168,7 +168,9 @@ if __name__ == '__main__':
                                 required=True, help='Name of the preseed in MrP')
     parser_preseed.add_argument('--preseed-path', type=str, default='',
                                 required=False, help='Path to the preseed file')
-    parser_preseed.add_argument('--type', type=str, choices=['kickstart', 'preseed'],
+    parser_preseed.add_argument('--type', type=str, choices=['kickstart',
+                                                             'preseed',
+                                                             'autoyast'],
                                 required=False, default=None, help='Type of the preseed file')
     parser_preseed.add_argument('--description', type=str, default='',
                                 required=False, help='Description of the preseed file in MrP')
